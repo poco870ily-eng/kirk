@@ -710,7 +710,7 @@
             });
 
             if (added) {
-                if (allEvents.length > 50) allEvents = allEvents.slice(0, 50);
+                if (allEvents.length > 50000) allEvents = allEvents.slice(0, 50);
                 renderEvents();
             }
         }
