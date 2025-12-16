@@ -655,4 +655,283 @@
                         generation: filteredGeneration,
                         generationNum: firstFilteredGen,
                         mutation: filteredMutation,
-               
+                        jobId: data.jobId,
+                        players: data.players,
+                        created_at: data.created_at
+                    };
+
+                    allEvents.unshift(filteredData);
+
+                    if (autoJoinEnabled && passesFilters(filteredData)) {
+                        if (!seenEvents[eventId]) {
+                            seenEvents[eventId] = true;
+                            // Simulate auto-join (since not in Roblox, log or alert)
+                            console.log("[AutoJoin] Would join:", filteredName, "Gen:", filteredGeneration, "JobId:", data.jobId);
+                            alert(`Auto-joining server: ${data.jobId}`);
+                        }
+                    }
+                }
+            });
+
+            if (allEvents.length > 50) allEvents = allEvents.slice(0, 50);
+
+            const eventsList = document.getElementById("events-list");
+            eventsList.innerHTML = "";
+
+            let displayedCount = 0;
+            allEvents.forEach((data, index) => {
+                if (passesFilters(data)) {
+                    const card = createEventCard(data, index);
+                    eventsList.appendChild(card);
+                    displayedCount++;
+                }
+            });
+
+            document.getElementById("event-counter").textContent = `${displayedCount} Events`;
+        }
+
+        function createEventCard(data, index) {
+            const card = document.createElement("div");
+            card.className = "event-card";
+
+            const accentBar = document.createElement("div");
+            accentBar.className = "accent-bar";
+            card.appendChild(accentBar);
+
+            const info = document.createElement("div");
+            info.className = "event-info";
+
+            const name = document.createElement("div");
+            name.className = "event-name";
+            name.textContent = data.name || "Unknown";
+            info.appendChild(name);
+
+            if (data.generation) {
+                const gen = document.createElement("div");
+                gen.className = "event-detail";
+                gen.textContent = `Generation: ${data.generation}`;
+                gen.style.color = "#64c8ff";
+                info.appendChild(gen);
+            }
+
+            if (data.mutation) {
+                const mut = document.createElement("div");
+                mut.className = "event-detail";
+                mut.textContent = `Mutation: ${data.mutation}`;
+                mut.style.color = "#ffb450";
+                info.appendChild(mut);
+            }
+
+            if (data.players) {
+                const players = document.createElement("div");
+                players.className = "event-detail";
+                players.textContent = `Players: ${data.players}`;
+                players.style.color = "#aaaaaa";
+                info.appendChild(players);
+            }
+
+            card.appendChild(info);
+
+            const buttons = document.createElement("div");
+            buttons.className = "event-buttons";
+
+            if (data.jobId) {
+                const joinBtn = document.createElement("button");
+                joinBtn.className = "join-btn";
+                joinBtn.textContent = "JOIN";
+                joinBtn.onclick = () => {
+                    // Simulate join (copy jobId or alert)
+                    navigator.clipboard.writeText(data.jobId);
+                    alert(`Copied JobId: ${data.jobId}`);
+                };
+                buttons.appendChild(joinBtn);
+
+                const loopBtn = document.createElement("button");
+                loopBtn.className = "loop-btn";
+                loopBtn.textContent = "LOOP";
+                if (loopJoinActive[data.jobId]) {
+                    loopBtn.textContent = "STOP";
+                    loopBtn.classList.add("active");
+                }
+                loopBtn.onclick = () => {
+                    loopJoinActive[data.jobId] = !loopJoinActive[data.jobId];
+                    if (loopJoinActive[data.jobId]) {
+                        loopBtn.textContent = "STOP";
+                        loopBtn.classList.add("active");
+                        // Simulate loop (log repeatedly)
+                        const interval = setInterval(() => {
+                            if (!loopJoinActive[data.jobId]) clearInterval(interval);
+                            console.log(`[Loop] Joining ${data.jobId}`);
+                        }, 3000);
+                    } else {
+                        loopBtn.textContent = "LOOP";
+                        loopBtn.classList.remove("active");
+                    }
+                };
+                buttons.appendChild(loopBtn);
+            } else {
+                const naBtn = document.createElement("button");
+                naBtn.className = "join-btn";
+                naBtn.style.backgroundColor = "#2d2d37";
+                naBtn.textContent = "N/A";
+                naBtn.disabled = true;
+                buttons.appendChild(naBtn);
+            }
+
+            card.appendChild(buttons);
+
+            return card;
+        }
+
+        function createNameTag(name) {
+            const tag = document.createElement("div");
+            tag.className = "tag";
+
+            const label = document.createElement("span");
+            label.textContent = name;
+            tag.appendChild(label);
+
+            const remove = document.createElement("div");
+            remove.className = "tag-remove";
+            remove.textContent = "×";
+            remove.onclick = () => {
+                blackListPets = blackListPets.filter(n => n !== name);
+                tag.remove();
+                updateEvents(allEvents); // Refresh list
+            };
+            tag.appendChild(remove);
+
+            document.getElementById("name-tags").appendChild(tag);
+        }
+
+        // Event Listeners
+        document.getElementById("auto-toggle").onclick = () => {
+            autoJoinEnabled = !autoJoinEnabled;
+            const toggle = document.getElementById("auto-toggle");
+            const label = toggle.nextElementSibling;
+            if (autoJoinEnabled) {
+                toggle.classList.add("active");
+                label.textContent = "Enabled";
+            } else {
+                toggle.classList.remove("active");
+                label.textContent = "Disabled";
+            }
+        };
+
+        document.getElementById("gen-filter").addEventListener("change", (e) => {
+            filterByMinGeneration = parseNumberWithSuffix(e.target.value);
+            updateEvents(allEvents);
+        });
+
+        document.getElementById("name-filter").addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && e.target.value.trim()) {
+                const newName = e.target.value.trim();
+                if (!blackListPets.some(n => n.toLowerCase() === newName.toLowerCase())) {
+                    blackListPets.push(newName);
+                    createNameTag(newName);
+                    updateEvents(allEvents);
+                }
+                e.target.value = "";
+            }
+        });
+
+        // WebSocket Connection
+        function connectWebSocket() {
+            document.getElementById("loading-subtitle").textContent = `Connecting... (Attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`;
+            document.getElementById("loading-subtitle").style.color = "#00ffaa";
+
+            ws = new WebSocket(WS_URL);
+
+            let connectionTimeout = setTimeout(() => {
+                if (ws.readyState !== 1) {
+                    console.warn("[WebSocket] Connection timeout");
+                    ws.close();
+                }
+            }, 10000); // 10 seconds timeout
+
+            ws.onopen = () => {
+                clearTimeout(connectionTimeout);
+                reconnectAttempts = 0;
+                document.getElementById("status-dot").style.backgroundColor = "#00ffaa";
+                document.getElementById("status-text").textContent = "ONLINE";
+                document.getElementById("status-text").style.color = "#00ffaa";
+                document.getElementById("loading-screen").style.display = "none";
+                document.getElementById("main-container").style.display = "flex";
+            };
+
+            ws.onmessage = (event) => {
+                let body = event.data;
+
+                let wrapper;
+                try {
+                    wrapper = JSON.parse(body);
+                } catch (err) {
+                    console.warn("[WebSocket] Failed to parse wrapper");
+                    return;
+                }
+
+                if (wrapper.encrypted && wrapper.data) {
+                    let decrypted;
+                    try {
+                        decrypted = decryptData(wrapper.data);
+                    } catch (err) {
+                        console.warn("[WebSocket] Decryption error:", err);
+                        return;
+                    }
+
+                    let decoded;
+                    try {
+                        decoded = JSON.parse(decrypted);
+                    } catch (err) {
+                        console.warn("[WebSocket] Failed to parse decrypted data:", err);
+                        return;
+                    }
+
+                    updateEvents(decoded);
+                } else {
+                    console.warn("[WebSocket] Received unencrypted data (fallback)");
+                    let decoded;
+                    try {
+                        decoded = JSON.parse(body);
+                    } catch (err) {
+                        return;
+                    }
+                    updateEvents(decoded);
+                }
+            };
+
+            ws.onclose = () => {
+                clearTimeout(connectionTimeout);
+                console.warn("[WebSocket] Connection closed");
+                document.getElementById("status-dot").style.backgroundColor = "#ff6464";
+                document.getElementById("status-text").textContent = "OFFLINE";
+                document.getElementById("status-text").style.color = "#ff6464";
+
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    setTimeout(connectWebSocket, 5000);
+                } else {
+                    document.getElementById("loading-subtitle").textContent = "Failed to Connect";
+                    document.getElementById("loading-subtitle").style.color = "#ff6464";
+                }
+            };
+
+            ws.onerror = (err) => {
+                console.warn("[WebSocket] Error:", err);
+                ws.close();
+            };
+        }
+
+        // Loading Dots Animation
+        const dots = ["●  ○  ○", "○  ●  ○", "○  ○  ●"];
+        let dotIndex = 0;
+        setInterval(() => {
+            dotIndex = (dotIndex + 1) % dots.length;
+            document.getElementById("loading-dots").textContent = dots[dotIndex];
+        }, 300);
+
+        // Start Connection
+        connectWebSocket();
+    </script>
+</body>
+</html>
