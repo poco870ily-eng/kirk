@@ -184,36 +184,17 @@
             gap: 8px;
         }
 
-        .join-btn, .loop-btn {
+        .join-btn {
             padding: 8px 20px;
             border-radius: 7px;
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.15s;
-        }
-
-        .join-btn {
             background-color: #00c878;
         }
 
         .join-btn:hover {
             background-color: #00e68a;
-        }
-
-        .loop-btn {
-            background-color: #7850ff;
-        }
-
-        .loop-btn:hover {
-            background-color: #8c66ff;
-        }
-
-        .loop-btn.active {
-            background-color: #ff3c50;
-        }
-
-        .loop-btn.active:hover {
-            background-color: #ff6677;
         }
 
         #right-panel {
@@ -298,7 +279,7 @@
             color: #64646e;
         }
 
-        #name-tags {
+        #name-tags, #target-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
@@ -398,7 +379,7 @@
                 margin-top: 10px;
             }
 
-            .join-btn, .loop-btn {
+            .join-btn {
                 flex: 1;
                 text-align: center;
             }
@@ -449,6 +430,8 @@
                     <input type="text" id="gen-filter" placeholder="Min Generation (e.g. 10m, 1b)...">
                     <input type="text" id="name-filter" placeholder="Blacklist Pet Name...">
                     <div id="name-tags"></div>
+                    <input type="text" id="target-filter" placeholder="Target Pet Name...">
+                    <div id="target-tags"></div>
                 </div>
             </div>
         </div>
@@ -456,7 +439,7 @@
 
     <script>
         // Constants
-        const SECRET_KEY = "vG7#z9!Lp2@Qw8^Xr6&Nj4*Ta0%Yb1$F";
+        const SECRET_KEY = (typeof process !== 'undefined' && process.env ? process.env.SECRET_KEY : "cjeje82");
         const WS_URL = "wss://ja-i04k.onrender.com";
         const BASE_JOIN_URL = "https://nameless-289z.onrender.com/join.html?placeId=109983668079237&jobId=";
 
@@ -465,9 +448,9 @@
         let autoJoinEnabled = false;
         let filterByMinGeneration = 0;
         let blackListPets = [];
+        let targetPets = [];
         let allEvents = [];
         let seenEvents = {};
-        let loopJoinActive = {};
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 10;
 
@@ -556,6 +539,21 @@
             return num;
         }
 
+        function calculateFirstGen(pets) {
+            if (pets.length === 0) return 0;
+            let genStr = pets[0].generation.toString();
+            let millions = genStr.match(/\$?(\d+\.?\d*)[mM]/)?.[1];
+            if (millions) {
+                return parseFloat(millions) * 1000000;
+            } else {
+                let numMatch = genStr.match(/\d+/)?.[0];
+                if (numMatch) {
+                    return parseInt(numMatch) || 0;
+                }
+            }
+            return 0;
+        }
+
         function parseEvent(row) {
             let rawModels = row.models || row.models_text || row.modelsText || (row.raw_payload && (row.raw_payload.models || row.raw_payload.models_text)) || "";
             let models = cleanText(rawModels);
@@ -625,24 +623,12 @@
                 playersDisplay = player_count;
             }
 
-            let firstGen = 0;
-            if (generations.length > 0) {
-                let genStr = generations[0].toString();
-                let millions = genStr.match(/\$?(\d+\.?\d*)M/)?.[1];
-                if (millions) {
-                    firstGen = parseFloat(millions) * 1000000;
-                } else {
-                    let numMatch = genStr.match(/\d+/)?.[0];
-                    if (numMatch) {
-                        firstGen = parseInt(numMatch) || 0;
-                    }
-                }
-            }
+            let generationNum = calculateFirstGen(pets);
 
             return {
                 name,
                 generation,
-                generationNum: firstGen,
+                generationNum,
                 mutation,
                 jobId,
                 players: playersDisplay,
@@ -676,11 +662,13 @@
 
             if (Array.isArray(decoded)) {
                 newEvents = decoded;
-            } else if (typeof decoded === "object" && decoded.jobId || decoded.models) {
+            } else if (typeof decoded === "object" && (decoded.jobId || decoded.models)) {
                 newEvents = [decoded];
             } else {
                 return;
             }
+
+            let added = false;
 
             newEvents.forEach(row => {
                 const data = parseEvent(row);
@@ -688,64 +676,75 @@
 
                 if (allEvents.some(e => e.jobId === eventId)) return;
 
-                if (!isEventTooOld(row.created_at)) {
-                    let filteredPets = data.pets.filter(pet => !blackListPets.some(black => pet.name.toLowerCase().includes(black.toLowerCase())));
+                if (isEventTooOld(row.created_at)) return;
 
-                    if (filteredPets.length === 0) return;
+                allEvents.unshift(data);
+                added = true;
 
-                    const filteredNames = filteredPets.map(p => p.name);
-                    const filteredGens = filteredPets.map(p => p.generation);
-                    const filteredMuts = filteredPets.map(p => p.mutation);
+                // Check for autojoin
+                let filteredPets = data.pets.filter(pet => !blackListPets.some(black => pet.name.toLowerCase().includes(black.toLowerCase())));
 
-                    const filteredName = filteredNames.join(", ");
-                    const filteredGeneration = filteredGens.join(", ");
-                    const filteredMutation = filteredMuts.join(", ");
+                if (filteredPets.length === 0) return;
 
-                    let firstFilteredGen = 0;
-                    if (filteredGens.length > 0) {
-                        let genStr = filteredGens[0];
-                        let millions = genStr.match(/\$?(\d+\.?\d*)M/)?.[1];
-                        if (millions) {
-                            firstFilteredGen = parseFloat(millions) * 1000000;
-                        } else {
-                            let numMatch = genStr.match(/\d+/)?.[0];
-                            if (numMatch) {
-                                firstFilteredGen = parseInt(numMatch) || 0;
-                            }
-                        }
-                    }
+                if (targetPets.length > 0 && !filteredPets.some(pet => targetPets.some(target => pet.name.toLowerCase().includes(target.toLowerCase())))) return;
 
-                    const filteredData = {
-                        name: filteredName,
-                        generation: filteredGeneration,
-                        generationNum: firstFilteredGen,
-                        mutation: filteredMutation,
-                        jobId: data.jobId,
-                        players: data.players,
-                        created_at: data.created_at
-                    };
+                const firstFilteredGen = calculateFirstGen(filteredPets);
 
-                    allEvents.unshift(filteredData);
+                const filteredData = {
+                    name: filteredPets.map(p => p.name).join(", "),
+                    generation: filteredPets.map(p => p.generation).join(", "),
+                    generationNum: firstFilteredGen,
+                    mutation: filteredPets.map(p => p.mutation).join(", "),
+                    jobId: data.jobId,
+                    players: data.players,
+                    created_at: data.created_at
+                };
 
-                    if (autoJoinEnabled && passesFilters(filteredData)) {
-                        if (!seenEvents[eventId]) {
-                            seenEvents[eventId] = true;
-                            console.log("[AutoJoin] Would join:", filteredName, "Gen:", filteredGeneration, "JobId:", data.jobId);
-                            window.location.href = BASE_JOIN_URL + data.jobId;
-                        }
+                if (autoJoinEnabled && passesFilters(filteredData)) {
+                    if (!seenEvents[eventId]) {
+                        seenEvents[eventId] = true;
+                        console.log("[AutoJoin] Would join:", filteredData.name, "Gen:", filteredData.generation, "JobId:", data.jobId);
+                        window.location.href = BASE_JOIN_URL + data.jobId;
                     }
                 }
             });
 
-            if (allEvents.length > 50) allEvents = allEvents.slice(0, 50);
+            if (added) {
+                if (allEvents.length > 50) allEvents = allEvents.slice(0, 50);
+                renderEvents();
+            }
+        }
 
+        function renderEvents() {
             const eventsList = document.getElementById("events-list");
             eventsList.innerHTML = "";
 
             let displayedCount = 0;
             allEvents.forEach((data, index) => {
-                if (passesFilters(data)) {
-                    const card = createEventCard(data, index);
+                let filteredPets = data.pets.filter(pet => !blackListPets.some(black => pet.name.toLowerCase().includes(black.toLowerCase())));
+
+                if (filteredPets.length === 0) return;
+
+                if (targetPets.length > 0 && !filteredPets.some(pet => targetPets.some(target => pet.name.toLowerCase().includes(target.toLowerCase())))) return;
+
+                const filteredNames = filteredPets.map(p => p.name).join(", ");
+                const filteredGeneration = filteredPets.map(p => p.generation).join(", ");
+                const filteredMutation = filteredPets.map(p => p.mutation).join(", ");
+
+                const firstFilteredGen = calculateFirstGen(filteredPets);
+
+                const filteredData = {
+                    name: filteredNames,
+                    generation: filteredGeneration,
+                    generationNum: firstFilteredGen,
+                    mutation: filteredMutation,
+                    jobId: data.jobId,
+                    players: data.players,
+                    created_at: data.created_at
+                };
+
+                if (passesFilters(filteredData)) {
+                    const card = createEventCard(filteredData, index);
                     eventsList.appendChild(card);
                     displayedCount++;
                 }
@@ -807,33 +806,6 @@
                     window.location.href = BASE_JOIN_URL + data.jobId;
                 };
                 buttons.appendChild(joinBtn);
-
-                const loopBtn = document.createElement("button");
-                loopBtn.className = "loop-btn";
-                loopBtn.textContent = "LOOP";
-                if (loopJoinActive[data.jobId]) {
-                    loopBtn.textContent = "STOP";
-                    loopBtn.classList.add("active");
-                }
-                loopBtn.onclick = () => {
-                    loopJoinActive[data.jobId] = !loopJoinActive[data.jobId];
-                    if (loopJoinActive[data.jobId]) {
-                        loopBtn.textContent = "STOP";
-                        loopBtn.classList.add("active");
-                        // Simulate loop (open in new tab repeatedly)
-                        const interval = setInterval(() => {
-                            if (!loopJoinActive[data.jobId]) {
-                                clearInterval(interval);
-                                return;
-                            }
-                            window.open(BASE_JOIN_URL + data.jobId, '_blank');
-                        }, 3000);
-                    } else {
-                        loopBtn.textContent = "LOOP";
-                        loopBtn.classList.remove("active");
-                    }
-                };
-                buttons.appendChild(loopBtn);
             } else {
                 const naBtn = document.createElement("button");
                 naBtn.className = "join-btn";
@@ -862,11 +834,32 @@
             remove.onclick = () => {
                 blackListPets = blackListPets.filter(n => n !== name);
                 tag.remove();
-                updateEvents(allEvents); // Refresh list
+                renderEvents();
             };
             tag.appendChild(remove);
 
             document.getElementById("name-tags").appendChild(tag);
+        }
+
+        function createTargetTag(name) {
+            const tag = document.createElement("div");
+            tag.className = "tag";
+
+            const label = document.createElement("span");
+            label.textContent = name;
+            tag.appendChild(label);
+
+            const remove = document.createElement("div");
+            remove.className = "tag-remove";
+            remove.textContent = "×";
+            remove.onclick = () => {
+                targetPets = targetPets.filter(n => n !== name);
+                tag.remove();
+                renderEvents();
+            };
+            tag.appendChild(remove);
+
+            document.getElementById("target-tags").appendChild(tag);
         }
 
         // Event Listeners
@@ -885,7 +878,7 @@
 
         document.getElementById("gen-filter").addEventListener("change", (e) => {
             filterByMinGeneration = parseNumberWithSuffix(e.target.value);
-            updateEvents(allEvents);
+            renderEvents();
         });
 
         document.getElementById("name-filter").addEventListener("keydown", (e) => {
@@ -894,7 +887,19 @@
                 if (!blackListPets.some(n => n.toLowerCase() === newName.toLowerCase())) {
                     blackListPets.push(newName);
                     createNameTag(newName);
-                    updateEvents(allEvents);
+                    renderEvents();
+                }
+                e.target.value = "";
+            }
+        });
+
+        document.getElementById("target-filter").addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && e.target.value.trim()) {
+                const newName = e.target.value.trim();
+                if (!targetPets.some(n => n.toLowerCase() === newName.toLowerCase())) {
+                    targetPets.push(newName);
+                    createTargetTag(newName);
+                    renderEvents();
                 }
                 e.target.value = "";
             }
