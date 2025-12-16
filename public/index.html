@@ -1,17 +1,658 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Roblox Event Monitor</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nameless AutoJoiner</title>
+    <style>
+        /* Global Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Gotham', sans-serif;
+            background-color: #0f0f16;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        #loading-frame {
+            background-color: #14141c;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+        }
+
+        #loading-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #loading-subtitle {
+            font-size: 16px;
+            color: #00ffaa;
+            margin-bottom: 20px;
+        }
+
+        #loading-dots {
+            font-size: 24px;
+            color: #00ffaa;
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0% { text-shadow: 0 0 5px #00ffaa; }
+            50% { text-shadow: 0 0 10px #00ffaa; }
+            100% { text-shadow: 0 0 5px #00ffaa; }
+        }
+
+        #main-container {
+            background-color: #0f0f16;
+            border-radius: 16px;
+            width: 900px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 30px rgba(0, 180, 255, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        #header {
+            background-color: #14141c;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #1e1e28;
+        }
+
+        #title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        #status {
+            display: flex;
+            align-items: center;
+        }
+
+        #status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background-color: #64646e;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        #status-text {
+            font-size: 12px;
+            color: #9696a0;
+        }
+
+        #content {
+            display: flex;
+            height: calc(100% - 60px);
+        }
+
+        #left-panel {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #14141c;
+            border-right: 1px solid #1e1e28;
+        }
+
+        #events-title {
+            font-size: 18px;
+            color: #00ffaa;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #event-counter {
+            font-size: 14px;
+            color: #9696a0;
+        }
+
+        .event-card {
+            background-color: #191923;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .accent-bar {
+            width: 4px;
+            height: 100%;
+            background-color: #00ffaa;
+            border-radius: 10px 0 0 10px;
+            margin-right: 15px;
+        }
+
+        .event-info {
+            flex: 1;
+        }
+
+        .event-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .event-detail {
+            font-size: 14px;
+            color: #b4b4be;
+            margin-bottom: 3px;
+        }
+
+        .event-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .join-btn, .loop-btn {
+            padding: 8px 20px;
+            border-radius: 7px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        .join-btn {
+            background-color: #00c878;
+        }
+
+        .join-btn:hover {
+            background-color: #00e68a;
+        }
+
+        .loop-btn {
+            background-color: #7850ff;
+        }
+
+        .loop-btn:hover {
+            background-color: #8c66ff;
+        }
+
+        .loop-btn.active {
+            background-color: #ff3c50;
+        }
+
+        .loop-btn.active:hover {
+            background-color: #ff6677;
+        }
+
+        #right-panel {
+            width: 250px;
+            padding: 20px;
+            background-color: #14141c;
+        }
+
+        #controls-title {
+            font-size: 18px;
+            color: #00ffaa;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            background-color: #191923;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .toggle {
+            width: 50px;
+            height: 26px;
+            background-color: #282832;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .toggle.active {
+            background-color: #00ffaa;
+        }
+
+        .toggle-knob {
+            width: 20px;
+            height: 20px;
+            background-color: #464650;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: left 0.2s, background-color 0.2s;
+        }
+
+        .toggle.active .toggle-knob {
+            left: 27px;
+            background-color: #ffffff;
+        }
+
+        .toggle-label {
+            margin-left: 15px;
+            font-size: 13px;
+            color: #9696a0;
+        }
+
+        .toggle.active + .toggle-label {
+            color: #00ffaa;
+        }
+
+        input[type="text"] {
+            background-color: #191923;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            color: #e6e6f0;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        input::placeholder {
+            color: #64646e;
+        }
+
+        #name-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .tag {
+            background-color: #00b4ff;
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tag-remove {
+            background-color: #ff3c50;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        .tag-remove:hover {
+            background-color: #ff6677;
+        }
+
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #00ffaa;
+            border-radius: 2px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: #1e1e28;
+        }
+    </style>
 </head>
 <body>
+    <div id="loading-screen">
+        <div id="loading-frame">
+            <div id="loading-title">NAMELESS</div>
+            <div id="loading-subtitle">Connecting...</div>
+            <div id="loading-dots">●  ○  ○</div>
+        </div>
+    </div>
 
-<h1>Roblox Event Monitor</h1>
-<div id="status">Connecting...</div>
+    <div id="main-container" style="display: none;">
+        <div id="header">
+            <div id="title">NAMELESS AUTOJOINER</div>
+            <div id="status">
+                <div id="status-dot"></div>
+                <div id="status-text">OFFLINE</div>
+            </div>
+        </div>
+        <div id="content">
+            <div id="left-panel">
+                <div id="events-title">
+                    EVENT LOGS
+                    <span id="event-counter">0 Events</span>
+                </div>
+                <div id="events-list"></div>
+            </div>
+            <div id="right-panel">
+                <div id="controls-title">CONTROLS</div>
+                <div class="section">
+                    <div>Auto Join</div>
+                    <div class="toggle-container">
+                        <div id="auto-toggle" class="toggle">
+                            <div class="toggle-knob"></div>
+                        </div>
+                        <span class="toggle-label">Disabled</span>
+                    </div>
+                </div>
+                <div class="section">
+                    <input type="text" id="gen-filter" placeholder="Min Generation (e.g. 10m, 1b)...">
+                    <input type="text" id="name-filter" placeholder="Blacklist Pet Name...">
+                    <div id="name-tags"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div id="events"></div>
+    <script>
+        // Constants
+        const SECRET_KEY = "vG7#z9!Lp2@Qw8^Xr6&Nj4*Ta0%Yb1$F";
+        const WS_URL = "wss://ja-i04k.onrender.com";
 
-<script src="script.js"></script>
-</body>
-</html>
+        // Variables
+        let ws = null;
+        let autoJoinEnabled = false;
+        let filterByMinGeneration = 0;
+        let blackListPets = [];
+        let allEvents = [];
+        let seenEvents = {};
+        let loopJoinActive = {};
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 10;
+
+        // Helper Functions
+        function xor(a, b) {
+            let result = 0;
+            let bitval = 1;
+            while (a > 0 || b > 0) {
+                if ((a % 2) !== (b % 2)) {
+                    result += bitval;
+                }
+                bitval *= 2;
+                a = Math.floor(a / 2);
+                b = Math.floor(b / 2);
+            }
+            return result;
+        }
+
+        function decryptData(base64Text, key = SECRET_KEY) {
+            // Base64 decode
+            const b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+            const b64lookup = {};
+            for (let i = 0; i < b64chars.length; i++) {
+                b64lookup[b64chars[i]] = i;
+            }
+
+            const bytes = [];
+            for (let i = 0; i < base64Text.length; i += 4) {
+                const chunk = base64Text.slice(i, i + 4);
+                let n = 0;
+                let bits = 0;
+
+                for (let j = 0; j < chunk.length; j++) {
+                    const c = chunk[j];
+                    if (c === "=") break;
+                    const val = b64lookup[c];
+                    if (val !== undefined) {
+                        n = n * 64 + val;
+                        bits += 6;
+                    }
+                }
+
+                while (bits >= 8) {
+                    bits -= 8;
+                    const byte = Math.floor(n / Math.pow(2, bits)) % 256;
+                    bytes.push(byte);
+                }
+            }
+
+            // XOR decryption
+            const keyBytes = [];
+            for (let i = 0; i < key.length; i++) {
+                keyBytes.push(key.charCodeAt(i));
+            }
+
+            const decrypted = [];
+            for (let i = 0; i < bytes.length; i++) {
+                const keyIndex = i % keyBytes.length;
+                const temp = xor(bytes[i], keyBytes[keyIndex]);
+                const decryptedByte = xor(temp, (i % 256));
+                decrypted.push(String.fromCharCode(decryptedByte));
+            }
+
+            return decrypted.join("");
+        }
+
+        function cleanText(s) {
+            if (!s) return "";
+            s = s.toString();
+            s = s.replace(/<\/?[^>]+>/g, "");
+            s = s.replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#\d+;/g, "");
+            s = s.replace(/\s+/g, " ");
+            s = s.trim();
+            return s;
+        }
+
+        function parseNumberWithSuffix(text) {
+            if (!text || text === "") return 0;
+            const cleaned = text.toLowerCase().replace(/\s+/g, "");
+            let numStr = cleaned.replace(/([km]?b?)$/, "");
+            let num = parseFloat(numStr) || 0;
+            const suffix = cleaned.match(/([km]?b?)$/)?.[0] || "";
+            if (suffix.includes("m")) num *= 1000000;
+            else if (suffix.includes("b")) num *= 1000000000;
+            else if (suffix.includes("k")) num *= 1000;
+            return num;
+        }
+
+        function parseEvent(row) {
+            let rawModels = row.models || row.models_text || row.modelsText || (row.raw_payload && (row.raw_payload.models || row.raw_payload.models_text)) || "";
+            let models = cleanText(rawModels);
+
+            let created_at = row.created_at || "";
+
+            let names = [];
+            let generations = [];
+            let mutations = [];
+
+            let petBlocks = models.split(",").filter(block => block.includes("Generation"));
+
+            if (petBlocks.length === 0) {
+                petBlocks = [models];
+            }
+
+            petBlocks.forEach(block => {
+                block = block.trim();
+
+                let name = block.match(/^(.*?)Generation\s*:/)?.[1] || "";
+                name = name.trim();
+
+                let gen = block.match(/Generation\s*:\s*(.*?)\s+Mutation\s*:/)?.[1] || block.match(/Generation\s*:\s*(\S+)/)?.[1] || "";
+                gen = gen.trim();
+
+                let mut = block.match(/Mutation\s*:\s*(.*?)\s+Rarity\s*:/)?.[1] || block.match(/Mutation\s*:\s*(\S+)/)?.[1] || "";
+                mut = mut.trim();
+
+                if (rawModels.includes("Yin") && rawModels.includes("Yang")) {
+                    const rawMutMatch = rawModels.match(/Mutation\s*:\s*(.*?)\s*Rarity/);
+                    if (rawMutMatch && rawMutMatch[1].includes("Yin") && rawMutMatch[1].includes("Yang")) {
+                        mut = "Yin Yang";
+                    }
+                }
+
+                if (name) names.push(name);
+                if (gen) generations.push(gen);
+                if (mut) mutations.push(mut);
+            });
+
+            if (names.length === 0 && models) {
+                names.push(models.split(" ")[0] || "Unknown");
+            }
+
+            const name = names.join(", ");
+            const generation = generations.join(", ");
+            const mutation = mutations.join(", ");
+
+            let pets = [];
+            const maxPets = Math.max(names.length, generations.length, mutations.length);
+            for (let i = 0; i < maxPets; i++) {
+                pets.push({
+                    name: names[i] || "",
+                    generation: generations[i] || "",
+                    mutation: mutations[i] || ""
+                });
+            }
+
+            let player_count = (row.playerCount || row.player_count || (row.raw_payload && (row.raw_payload.playerCount || row.raw_payload.player_count)) || "").toString().replace(/,/g, "").trim();
+            let max_players = (row.maxPlayers || row.max_players || (row.raw_payload && (row.raw_payload.maxPlayers || row.raw_payload.max_players)) || "").toString().replace(/,/g, "").trim();
+            let jobId = row.jobId || row.job_id || (row.raw_payload && row.raw_payload.jobId) || "";
+
+            let playersDisplay = "";
+            if (player_count && max_players) {
+                playersDisplay = player_count + "/" + max_players;
+            } else if (player_count) {
+                playersDisplay = player_count;
+            }
+
+            let firstGen = 0;
+            if (generations.length > 0) {
+                let genStr = generations[0].toString();
+                let millions = genStr.match(/\$?(\d+\.?\d*)M/)?.[1];
+                if (millions) {
+                    firstGen = parseFloat(millions) * 1000000;
+                } else {
+                    let numMatch = genStr.match(/\d+/)?.[0];
+                    if (numMatch) {
+                        firstGen = parseInt(numMatch) || 0;
+                    }
+                }
+            }
+
+            return {
+                name,
+                generation,
+                generationNum: firstGen,
+                mutation,
+                jobId,
+                players: playersDisplay,
+                created_at,
+                pets
+            };
+        }
+
+        function isEventTooOld(created_at) {
+            if (!created_at) return false;
+            const match = created_at.match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)/);
+            if (!match) return false;
+
+            const eventTime = new Date(`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}Z`).getTime() / 1000;
+            const currentTime = Math.floor(Date.now() / 1000);
+            const diff = currentTime - eventTime;
+
+            return diff > 300;
+        }
+
+        function passesFilters(data) {
+            if (filterByMinGeneration > 0 && data.generationNum < filterByMinGeneration) {
+                return false;
+            }
+            return true;
+        }
+
+        // UI Functions
+        function updateEvents(decoded) {
+            let newEvents = [];
+
+            if (Array.isArray(decoded)) {
+                newEvents = decoded;
+            } else if (typeof decoded === "object" && decoded.jobId || decoded.models) {
+                newEvents = [decoded];
+            } else {
+                return;
+            }
+
+            newEvents.forEach(row => {
+                const data = parseEvent(row);
+                const eventId = data.jobId;
+
+                if (allEvents.some(e => e.jobId === eventId)) return;
+
+                if (!isEventTooOld(row.created_at)) {
+                    let filteredPets = data.pets.filter(pet => !blackListPets.some(black => pet.name.toLowerCase().includes(black.toLowerCase())));
+
+                    if (filteredPets.length === 0) return;
+
+                    const filteredNames = filteredPets.map(p => p.name);
+                    const filteredGens = filteredPets.map(p => p.generation);
+                    const filteredMuts = filteredPets.map(p => p.mutation);
+
+                    const filteredName = filteredNames.join(", ");
+                    const filteredGeneration = filteredGens.join(", ");
+                    const filteredMutation = filteredMuts.join(", ");
+
+                    let firstFilteredGen = 0;
+                    if (filteredGens.length > 0) {
+                        let genStr = filteredGens[0];
+                        let millions = genStr.match(/\$?(\d+\.?\d*)M/)?.[1];
+                        if (millions) {
+                            firstFilteredGen = parseFloat(millions) * 1000000;
+                        } else {
+                            let numMatch = genStr.match(/\d+/)?.[0];
+                            if (numMatch) {
+                                firstFilteredGen = parseInt(numMatch) || 0;
+                            }
+                        }
+                    }
+
+                    const filteredData = {
+                        name: filteredName,
+                        generation: filteredGeneration,
+                        generationNum: firstFilteredGen,
+                        mutation: filteredMutation,
+               
