@@ -9,8 +9,8 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Gotham', sans-serif;
-            background-color: #0f0f16;
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
             color: #ffffff;
             display: flex;
             justify-content: center;
@@ -34,60 +34,61 @@
         }
 
         #loading-frame {
-            background-color: #14141c;
-            border-radius: 16px;
+            background-color: #1e1e1e;
+            border-radius: 12px;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.2);
         }
 
         #loading-title {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: bold;
             margin-bottom: 10px;
         }
 
         #loading-subtitle {
-            font-size: 16px;
-            color: #00ffaa;
+            font-size: 15px;
+            color: #00b0ff;
             margin-bottom: 20px;
         }
 
         #loading-dots {
-            font-size: 24px;
-            color: #00ffaa;
+            font-size: 22px;
+            color: #00b0ff;
             animation: dots 1.5s infinite;
         }
 
         @keyframes dots {
-            0% { text-shadow: 0 0 5px #00ffaa; }
-            50% { text-shadow: 0 0 10px #00ffaa; }
-            100% { text-shadow: 0 0 5px #00ffaa; }
+            0% { text-shadow: 0 0 5px #00b0ff; }
+            50% { text-shadow: 0 0 10px #00b0ff; }
+            100% { text-shadow: 0 0 5px #00b0ff; }
         }
 
         #main-container {
-            background-color: #0f0f16;
-            border-radius: 16px;
-            width: 900px;
-            height: 600px;
+            background-color: #121212;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 900px;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 30px rgba(0, 180, 255, 0.3);
+            box-shadow: 0 0 25px rgba(0, 150, 255, 0.3);
             overflow: hidden;
             position: relative;
         }
 
         #header {
-            background-color: #14141c;
-            padding: 15px 20px;
+            background-color: #1e1e1e;
+            padding: 12px 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #1e1e28;
+            border-bottom: 1px solid #2a2a2a;
         }
 
         #title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
         }
 
@@ -101,7 +102,7 @@
             height: 8px;
             border-radius: 50%;
             margin-right: 8px;
-            background-color: #64646e;
+            background-color: #606060;
             animation: pulse 1.5s infinite;
         }
 
@@ -113,51 +114,53 @@
 
         #status-text {
             font-size: 12px;
-            color: #9696a0;
+            color: #909090;
         }
 
         #content {
             display: flex;
-            height: calc(100% - 60px);
+            flex-direction: row;
+            height: calc(100% - 50px);
+            overflow: hidden;
         }
 
         #left-panel {
             flex: 1;
-            padding: 20px;
+            padding: 15px;
             overflow-y: auto;
-            background-color: #14141c;
-            border-right: 1px solid #1e1e28;
+            background-color: #1e1e1e;
+            border-right: 1px solid #2a2a2a;
         }
 
         #events-title {
-            font-size: 18px;
-            color: #00ffaa;
-            margin-bottom: 15px;
+            font-size: 17px;
+            color: #00b0ff;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
         }
 
         #event-counter {
-            font-size: 14px;
-            color: #9696a0;
+            font-size: 13px;
+            color: #909090;
         }
 
         .event-card {
-            background-color: #191923;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
+            background-color: #242424;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .accent-bar {
             width: 4px;
             height: 100%;
-            background-color: #00ffaa;
-            border-radius: 10px 0 0 10px;
-            margin-right: 15px;
+            background-color: #00b0ff;
+            border-radius: 8px 0 0 8px;
+            margin-right: 12px;
         }
 
         .event-info {
@@ -165,98 +168,100 @@
         }
 
         .event-name {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .event-detail {
-            font-size: 14px;
-            color: #b4b4be;
-            margin-bottom: 3px;
+            font-size: 13px;
+            color: #b0b0b0;
+            margin-bottom: 2px;
         }
 
         .event-buttons {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .join-btn, .loop-btn {
-            padding: 8px 20px;
-            border-radius: 7px;
+            padding: 6px 18px;
+            border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.15s;
+            font-size: 12px;
         }
 
         .join-btn {
-            background-color: #00c878;
+            background-color: #00a0e0;
         }
 
         .join-btn:hover {
-            background-color: #00e68a;
+            background-color: #00c0ff;
         }
 
         .loop-btn {
-            background-color: #7850ff;
+            background-color: #6a40e0;
         }
 
         .loop-btn:hover {
-            background-color: #8c66ff;
+            background-color: #7e55f0;
         }
 
         .loop-btn.active {
-            background-color: #ff3c50;
+            background-color: #e04050;
         }
 
         .loop-btn.active:hover {
-            background-color: #ff6677;
+            background-color: #f05565;
         }
 
         #right-panel {
-            width: 250px;
-            padding: 20px;
-            background-color: #14141c;
+            width: 220px;
+            padding: 15px;
+            background-color: #1e1e1e;
+            overflow-y: auto;
         }
 
         #controls-title {
-            font-size: 18px;
-            color: #00ffaa;
-            margin-bottom: 20px;
+            font-size: 17px;
+            color: #00b0ff;
+            margin-bottom: 15px;
         }
 
         .section {
-            background-color: #191923;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
+            background-color: #242424;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
         }
 
         .toggle-container {
             display: flex;
             align-items: center;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .toggle {
-            width: 50px;
-            height: 26px;
-            background-color: #282832;
-            border-radius: 13px;
+            width: 45px;
+            height: 24px;
+            background-color: #303030;
+            border-radius: 12px;
             position: relative;
             cursor: pointer;
             transition: background-color 0.2s;
         }
 
         .toggle.active {
-            background-color: #00ffaa;
+            background-color: #00b0ff;
         }
 
         .toggle-knob {
-            width: 20px;
-            height: 20px;
-            background-color: #464650;
+            width: 18px;
+            height: 18px;
+            background-color: #505050;
             border-radius: 50%;
             position: absolute;
             top: 3px;
@@ -265,60 +270,60 @@
         }
 
         .toggle.active .toggle-knob {
-            left: 27px;
+            left: 24px;
             background-color: #ffffff;
         }
 
         .toggle-label {
-            margin-left: 15px;
-            font-size: 13px;
-            color: #9696a0;
+            margin-left: 12px;
+            font-size: 12px;
+            color: #909090;
         }
 
         .toggle.active + .toggle-label {
-            color: #00ffaa;
+            color: #00b0ff;
         }
 
         input[type="text"] {
-            background-color: #191923;
+            background-color: #242424;
             border: none;
-            border-radius: 8px;
-            padding: 10px;
-            color: #e6e6f0;
+            border-radius: 6px;
+            padding: 8px;
+            color: #e0e0e0;
             width: 100%;
             box-sizing: border-box;
-            margin-bottom: 15px;
-            font-size: 14px;
+            margin-bottom: 12px;
+            font-size: 13px;
         }
 
         input::placeholder {
-            color: #64646e;
+            color: #606060;
         }
 
         #name-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
-            max-height: 100px;
+            gap: 4px;
+            max-height: 90px;
             overflow-y: auto;
         }
 
         .tag {
-            background-color: #00b4ff;
+            background-color: #0080c0;
             color: #ffffff;
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 11px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
 
         .tag-remove {
-            background-color: #ff3c50;
+            background-color: #e04050;
             border-radius: 50%;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -327,7 +332,7 @@
         }
 
         .tag-remove:hover {
-            background-color: #ff6677;
+            background-color: #f05565;
         }
 
         /* Scrollbar Styles */
@@ -336,12 +341,55 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background-color: #00ffaa;
+            background-color: #00b0ff;
             border-radius: 2px;
         }
 
         ::-webkit-scrollbar-track {
-            background-color: #1e1e28;
+            background-color: #2a2a2a;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 600px) {
+            #content {
+                flex-direction: column;
+            }
+
+            #left-panel {
+                border-right: none;
+                border-bottom: 1px solid #2a2a2a;
+                order: 2;
+            }
+
+            #right-panel {
+                width: auto;
+                order: 1;
+            }
+
+            #header {
+                padding: 10px 15px;
+            }
+
+            #title {
+                font-size: 20px;
+            }
+
+            .event-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .event-buttons {
+                flex-direction: row;
+                width: 100%;
+                margin-top: 10px;
+                justify-content: space-between;
+            }
+
+            .join-btn, .loop-btn {
+                flex: 1;
+                margin: 0 5px;
+            }
         }
     </style>
 </head>
@@ -394,6 +442,7 @@
         // Constants
         const SECRET_KEY = "vG7#z9!Lp2@Qw8^Xr6&Nj4*Ta0%Yb1$F";
         const WS_URL = "wss://ja-i04k.onrender.com";
+        const JOIN_BASE_URL = "https://nameless-289z.onrender.com/join.html?placeId=109983668079237&jobId=";
 
         // Variables
         let ws = null;
@@ -665,9 +714,8 @@
                     if (autoJoinEnabled && passesFilters(filteredData)) {
                         if (!seenEvents[eventId]) {
                             seenEvents[eventId] = true;
-                            // Simulate auto-join (since not in Roblox, log or alert)
-                            console.log("[AutoJoin] Would join:", filteredName, "Gen:", filteredGeneration, "JobId:", data.jobId);
-                            alert(`Auto-joining server: ${data.jobId}`);
+                            console.log("[AutoJoin] Redirecting to:", filteredName, "Gen:", filteredGeneration, "JobId:", data.jobId);
+                            window.location.href = JOIN_BASE_URL + data.jobId;
                         }
                     }
                 }
@@ -710,7 +758,7 @@
                 const gen = document.createElement("div");
                 gen.className = "event-detail";
                 gen.textContent = `Generation: ${data.generation}`;
-                gen.style.color = "#64c8ff";
+                gen.style.color = "#50b0ff";
                 info.appendChild(gen);
             }
 
@@ -718,7 +766,7 @@
                 const mut = document.createElement("div");
                 mut.className = "event-detail";
                 mut.textContent = `Mutation: ${data.mutation}`;
-                mut.style.color = "#ffb450";
+                mut.style.color = #ffa040;
                 info.appendChild(mut);
             }
 
@@ -726,7 +774,7 @@
                 const players = document.createElement("div");
                 players.className = "event-detail";
                 players.textContent = `Players: ${data.players}`;
-                players.style.color = "#aaaaaa";
+                players.style.color = "#a0a0a0";
                 info.appendChild(players);
             }
 
@@ -740,9 +788,7 @@
                 joinBtn.className = "join-btn";
                 joinBtn.textContent = "JOIN";
                 joinBtn.onclick = () => {
-                    // Simulate join (copy jobId or alert)
-                    navigator.clipboard.writeText(data.jobId);
-                    alert(`Copied JobId: ${data.jobId}`);
+                    window.location.href = JOIN_BASE_URL + data.jobId;
                 };
                 buttons.appendChild(joinBtn);
 
@@ -758,10 +804,14 @@
                     if (loopJoinActive[data.jobId]) {
                         loopBtn.textContent = "STOP";
                         loopBtn.classList.add("active");
-                        // Simulate loop (log repeatedly)
+                        // Simulate loop with redirect
                         const interval = setInterval(() => {
-                            if (!loopJoinActive[data.jobId]) clearInterval(interval);
-                            console.log(`[Loop] Joining ${data.jobId}`);
+                            if (!loopJoinActive[data.jobId]) {
+                                clearInterval(interval);
+                                return;
+                            }
+                            console.log(`[Loop] Redirecting to ${data.jobId}`);
+                            window.location.href = JOIN_BASE_URL + data.jobId;
                         }, 3000);
                     } else {
                         loopBtn.textContent = "LOOP";
@@ -772,7 +822,7 @@
             } else {
                 const naBtn = document.createElement("button");
                 naBtn.className = "join-btn";
-                naBtn.style.backgroundColor = "#2d2d37";
+                naBtn.style.backgroundColor = "#303030";
                 naBtn.textContent = "N/A";
                 naBtn.disabled = true;
                 buttons.appendChild(naBtn);
@@ -838,7 +888,7 @@
         // WebSocket Connection
         function connectWebSocket() {
             document.getElementById("loading-subtitle").textContent = `Connecting... (Attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`;
-            document.getElementById("loading-subtitle").style.color = "#00ffaa";
+            document.getElementById("loading-subtitle").style.color = "#00b0ff";
 
             ws = new WebSocket(WS_URL);
 
@@ -852,9 +902,9 @@
             ws.onopen = () => {
                 clearTimeout(connectionTimeout);
                 reconnectAttempts = 0;
-                document.getElementById("status-dot").style.backgroundColor = "#00ffaa";
+                document.getElementById("status-dot").style.backgroundColor = "#00b0ff";
                 document.getElementById("status-text").textContent = "ONLINE";
-                document.getElementById("status-text").style.color = "#00ffaa";
+                document.getElementById("status-text").style.color = "#00b0ff";
                 document.getElementById("loading-screen").style.display = "none";
                 document.getElementById("main-container").style.display = "flex";
             };
@@ -903,16 +953,16 @@
             ws.onclose = () => {
                 clearTimeout(connectionTimeout);
                 console.warn("[WebSocket] Connection closed");
-                document.getElementById("status-dot").style.backgroundColor = "#ff6464";
+                document.getElementById("status-dot").style.backgroundColor = "#ff5050";
                 document.getElementById("status-text").textContent = "OFFLINE";
-                document.getElementById("status-text").style.color = "#ff6464";
+                document.getElementById("status-text").style.color = "#ff5050";
 
                 if (reconnectAttempts < maxReconnectAttempts) {
                     reconnectAttempts++;
                     setTimeout(connectWebSocket, 5000);
                 } else {
                     document.getElementById("loading-subtitle").textContent = "Failed to Connect";
-                    document.getElementById("loading-subtitle").style.color = "#ff6464";
+                    document.getElementById("loading-subtitle").style.color = "#ff5050";
                 }
             };
 
