@@ -439,7 +439,7 @@
 
     <script>
         // Constants
-        const SECRET_KEY = (typeof process !== 'undefined' && process.env ? process.env.SECRET_KEY : "cjeje82");
+        const SECRET_KEY = process.env.SECRET_KEY;
         const WS_URL = "wss://ja-i04k.onrender.com";
         const BASE_JOIN_URL = "https://nameless-289z.onrender.com/join.html?placeId=109983668079237&jobId=";
 
