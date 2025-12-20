@@ -834,6 +834,7 @@
             remove.onclick = () => {
                 blackListPets = blackListPets.filter(n => n !== name);
                 tag.remove();
+                localStorage.setItem('blackListPets', JSON.stringify(blackListPets));
                 renderEvents();
             };
             tag.appendChild(remove);
@@ -855,11 +856,36 @@
             remove.onclick = () => {
                 targetPets = targetPets.filter(n => n !== name);
                 tag.remove();
+                localStorage.setItem('targetPets', JSON.stringify(targetPets));
                 renderEvents();
             };
             tag.appendChild(remove);
 
             document.getElementById("target-tags").appendChild(tag);
+        }
+
+        // Load saved filters
+        function loadFilters() {
+            if (localStorage.getItem('autoJoinEnabled') !== null) {
+                autoJoinEnabled = JSON.parse(localStorage.getItem('autoJoinEnabled'));
+                const toggle = document.getElementById("auto-toggle");
+                const label = toggle.nextElementSibling;
+                if (autoJoinEnabled) {
+                    toggle.classList.add("active");
+                    label.textContent = "Enabled";
+                } else {
+                    toggle.classList.remove("active");
+                    label.textContent = "Disabled";
+                }
+            }
+            const savedGen = localStorage.getItem('filterByMinGeneration') || '';
+            document.getElementById("gen-filter").value = savedGen;
+            filterByMinGeneration = parseNumberWithSuffix(savedGen);
+            blackListPets = JSON.parse(localStorage.getItem('blackListPets')) || [];
+            blackListPets.forEach(createNameTag);
+            targetPets = JSON.parse(localStorage.getItem('targetPets')) || [];
+            targetPets.forEach(createTargetTag);
+            renderEvents();
         }
 
         // Event Listeners
@@ -874,10 +900,12 @@
                 toggle.classList.remove("active");
                 label.textContent = "Disabled";
             }
+            localStorage.setItem('autoJoinEnabled', JSON.stringify(autoJoinEnabled));
         };
 
         document.getElementById("gen-filter").addEventListener("change", (e) => {
             filterByMinGeneration = parseNumberWithSuffix(e.target.value);
+            localStorage.setItem('filterByMinGeneration', e.target.value);
             renderEvents();
         });
 
@@ -887,6 +915,7 @@
                 if (!blackListPets.some(n => n.toLowerCase() === newName.toLowerCase())) {
                     blackListPets.push(newName);
                     createNameTag(newName);
+                    localStorage.setItem('blackListPets', JSON.stringify(blackListPets));
                     renderEvents();
                 }
                 e.target.value = "";
@@ -899,6 +928,7 @@
                 if (!targetPets.some(n => n.toLowerCase() === newName.toLowerCase())) {
                     targetPets.push(newName);
                     createTargetTag(newName);
+                    localStorage.setItem('targetPets', JSON.stringify(targetPets));
                     renderEvents();
                 }
                 e.target.value = "";
@@ -1000,7 +1030,8 @@
             document.getElementById("loading-dots").textContent = dots[dotIndex];
         }, 300);
 
-        // Start Connection
+        // Load filters and start connection
+        loadFilters();
         connectWebSocket();
     </script>
 </body>
